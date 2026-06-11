@@ -1,0 +1,35 @@
+# OpenCode Server Deployment
+#
+# Quick start:
+#   1. Copy .env.example → .env, fill in your values
+#   2. docker compose up -d --build
+#   3. Access http://<server-ip>:4096
+
+services:
+  opencode:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: opencode-server
+    restart: unless-stopped
+    ports:
+      # Host:Container — change the left side if 4096 is taken
+      - "4096:4096"
+    environment:
+      # Authentication (REQUIRED — without this anyone can control your AI)
+      - OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}
+      - OPENCODE_SERVER_USERNAME=${OPENCODE_SERVER_USERNAME:-opencode}
+      # AI Provider Keys (set the ones you use)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+    volumes:
+      # ── 你的代码目录 ──────────────────────────────────────────────
+      # 容器内的路径和宿主机保持一致，opencode 直接操作这些路径
+      - /home:/home
+      - /www:/www
+      # ── opencode 自身数据（sessions、配置）持久化 ─────────────────
+      - opencode-data:/root/.opencode
+
+volumes:
+  opencode-data:
